@@ -1,4 +1,4 @@
-# PictureBeaver
+# PictureBeaverTree
 
 Automatic web graphics optimizer for Windows: PNG and JPEG.
 
@@ -7,15 +7,13 @@ Removes unnecessary information from graphic files. Less size without data loss.
 
 ## Using from Windows Explorer
 
-Drag and drop files/folders to `optimize.wsf` (or it’s shortcut). Optimized files will be in `Optimized` folder, statistics in `Optimization Report.html`.
+Drag and drop files/folders to `optimize.wsf` (or it’s shortcut).
 
 ## Using from command line
 
 ```
 > cscript optimize.wsf <file or folder>
 ```
-
-Optimized files will be in `Optimized` folder, statistics in `Optimization Report.html`.
 
 
 ---
@@ -25,6 +23,7 @@ Optimized files will be in `Optimized` folder, statistics in `Optimization Repor
 (The MIT License)
 
 Copyright © 2009-2012 Artem Sapegin, artem@sapegin.ru, http://sapegin.me
+Copyright © 2013-2014 Alexey barykin, alexey@barykin.com, http://barykin.com
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
