@@ -10,287 +10,286 @@ https://github.com/abarykin/picturebeaver
             Automatic web graphics optimizer: PNG and JPEG
         </description>
     </runtime>
-    <script language="JScript"><![CDATA[
-        // -i0: non-interlaced
-        // -nc: do not apply color type reduction
-        // -nb: do not apply bit depth reduction
-        var projectName                 = 'PictureBeaverTree';
-        var version                     = '0.5';
+    <script language="JScript">
+<![CDATA[
+// -i0: non-interlaced
+// -nc: do not apply color type reduction
+// -nb: do not apply bit depth reduction
+var projectName             = 'PictureBeaverTree';
+var version                 = '0.5';
 
-        var PNG_OPTIMIZER_FILE          = 'optipng.exe';
-        var PNG_OPTIMIZER_PARAMS        = '-o3 -i0 -q';
-        //var GIF_OPTIMIZER_FILE    = 'gifsicle.exe';
-        //var GIF_OPTIMIZER_PARAMS  = '-O2 -o';
-        var JPEG_OPTIMIZER_FILE         = 'jpegtran.exe';
-        var JPEG_OPTIMIZER_PARAMS       = '-copy none -optimize';
+var PNG_OPTIMIZER_FILE      = 'optipng.exe';
+var PNG_OPTIMIZER_PARAMS    = '-o3 -i0 -q';
+//var GIF_OPTIMIZER_FILE    = 'gifsicle.exe';
+//var GIF_OPTIMIZER_PARAMS  = '-O2 -o';
+var JPEG_OPTIMIZER_FILE     = 'jpegtran.exe';
+var JPEG_OPTIMIZER_PARAMS   = '-copy none -optimize';
 
-        var fso                         = WScript.CreateObject("Scripting.FileSystemObject");
-        var arg                         = WScript.Arguments;
-        var shell                       = WScript.CreateObject("WScript.Shell");
+var fso                     = WScript.CreateObject("Scripting.FileSystemObject");
+var arg                     = WScript.Arguments;
+var shell                   = WScript.CreateObject("WScript.Shell");
 
-        var TEMP_FOLDER                 = fso.GetSpecialFolder(2) + '/' + projectName;
-        var ROOT_PATH                   = fso.GetParentFolderName(WScript.ScriptFullName);
-        var BIN_PATH                    = ROOT_PATH + '/bin';
-        var argumentStr                 = "";
-        var results                     = [];
+var TEMP_FOLDER             = fso.GetSpecialFolder(2) + '/' + projectName;
+var ROOT_PATH               = fso.GetParentFolderName(WScript.ScriptFullName);
+var BIN_PATH                = ROOT_PATH + '/bin';
+var rootFolder              = '';
+var argumentStr             = '';
+var results                 = [];
 
-        ///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
-        function exec(binary, params, srcName, dstName) {
-            "use strict";
-            var cmd = [
-                BIN_PATH + '/' + binary,
-                params,
-                '"' + srcName + '"'
-            ];
+function exec(binary, params, srcName, dstName) {
+    "use strict";
+    var cmd = [
+        BIN_PATH + '/' + binary,
+        params,
+        '"' + srcName + '"'
+    ];
 
-            if (dstName !== undefined) {
-                cmd.push('"' + dstName + '"');
-            }
+    if (dstName !== undefined) {
+        cmd.push('"' + dstName + '"');
+    }
 
-            cmd = cmd.join(' ');
+    cmd = cmd.join(' ');
 
-            var proc = shell.Run(cmd, 0, true);
+    var proc = shell.Run(cmd, 0, true);
 
-            // ждём завершения
-            while (0 === proc.Status) {
-                WScript.Sleep(100);
-            }
+    // ждём завершения
+    while (0 === proc.Status) {
+        WScript.Sleep(100);
+    }
+}
+
+function checkResult(srcPath, dstPath) {
+    "use strict";
+    var srcName = fso.GetFileName(srcPath);
+    var src = fso.GetFile(srcPath);
+    var dst;
+
+    var withoutRoot = new String(srcPath);
+    withoutRoot = withoutRoot.replace(rootFolder, '');
+
+    try {
+        dst = fso.GetFile(dstPath);
+    }
+    catch (e) {
+        src.Copy(TEMP_FOLDER + '/' + srcName);
+        WScript.Echo(withoutRoot + ' - Cannot optimize file');
+        return false;
+    }
+
+    var result = {
+        file:   srcPath,
+        before: src.size,
+        after:  dst.size
+    };
+
+    if (dst.size <= src.size) {
+        result.bytes = src.size - dst.size;
+        result.percents = (100 - (dst.size / src.size) * 100).toFixed(2);
+
+        WScript.Echo(withoutRoot + ' - ' + result.percents + '%');
+    }
+    else {
+        result.after = src.size;
+        result.bytes = 0;
+        result.percents = 0;
+        // Replace old file with optimized version
+        dst.Delete();
+        src.Copy(TEMP_FOLDER + '/' + srcName);
+
+        WScript.Echo(withoutRoot + ' - 0%');
+    }
+
+    results.push(result);
+}
+
+function processFile(filePath) {
+    "use strict";
+    //var folderName = fso.GetParentFolderName(filePath);
+    var fileName = fso.GetFileName(filePath);
+    var extension = fso.GetExtensionName(filePath).toLowerCase();
+    var copyPath = TEMP_FOLDER + '/' + fileName;
+
+    switch (extension) {
+        /*case 'png':
+         case 'gif':
+         if (('gif' == extension) && isGifAnimated(filePath)) {
+         // Change src and dst with each other so dst could be placed in -o switch
+         exec(GIF_OPTIMIZER_FILE, GIF_OPTIMIZER_PARAMS, copyPath, filePath);
+
+         checkResult(filePath, copyPath);
+         }
+         else {
+         fso.GetFile(filePath).Copy(copyPath);
+
+         exec(PNG_OPTIMIZER_FILE, PNG_OPTIMIZER_PARAMS, copyPath);
+
+         if ('gif' == extension) {
+         fso.GetFile(copyPath).Delete();
+         }
+
+         checkResult(filePath, copyPath.replace('.gif', '.png'));
+         }
+
+         break;*/
+
+        case 'png':
+            fso.GetFile(filePath).Copy(copyPath);
+            exec(PNG_OPTIMIZER_FILE, PNG_OPTIMIZER_PARAMS, copyPath);
+            checkResult(filePath, copyPath);
+
+            fso.GetFile(copyPath).Copy(filePath);
+            break;
+
+        case 'jpg':
+        case 'jpeg':
+            exec(JPEG_OPTIMIZER_FILE, JPEG_OPTIMIZER_PARAMS, filePath, copyPath);
+            checkResult(filePath, copyPath);
+
+            fso.GetFile(copyPath).Copy(filePath);
+            break;
+    }
+}
+
+function processFolder(folderName) {
+    "use strict";
+    var folder = fso.GetFolder(folderName);
+
+    if (0 === (folder.Files.count + folder.SubFolders.count)) {
+        return;
+    }
+
+    if (folder.SubFolders.count > 0) {
+        for (var subFolders = new Enumerator(folder.SubFolders); !subFolders.atEnd(); subFolders.moveNext()) { // @todo
+            var subFolder = subFolders.item();
+            processFolder(subFolder);
         }
+    }
 
-        function checkResult(srcPath, dstPath) {
-            "use strict";
-            var srcName = fso.GetFileName(srcPath);
-            var src = fso.GetFile(srcPath);
-            var dst;
+    if (folder.Files.count > 0) {
+        for (var files = new Enumerator(folder.Files); !files.atEnd(); files.moveNext()) { // @todo
+            var file = files.item();
+            processFile(file);
+        }
+    }
+}
 
-            var withoutRoot = new String(srcPath);
-            withoutRoot =   withoutRoot.replace(rootFolder, '');
+function process(files) {
+    "use strict";
+    for (var fileIdx = 0; fileIdx < files.length; fileIdx++) {
+        var fileName = files(fileIdx);
+        if (fileName !== 'console') {
 
-            try {
-                dst = fso.GetFile(dstPath);
-            }
-            catch (e) {
-                src.Copy(TEMP_FOLDER + '/' + srcName);
-                WScript.Echo(withoutRoot + ' - Cannot optimize file');
-                return false;
-            }
-
-            var result = {
-                file:   srcPath,
-                before: src.size,
-                after:  dst.size
-            };
-
-            if (dst.size <= src.size) {
-                result.bytes = src.size - dst.size;
-                result.percents = (100 - (dst.size / src.size) * 100).toFixed(2);
-
-                WScript.Echo(withoutRoot + ' - ' + result.percents + '%');
+            if (0 === fso.FolderExists(fileName)) {
+                processFile(fileName);
             }
             else {
-                result.after = src.size;
-                result.bytes = 0;
-                result.percents = 0;
-                // Replace old file with optimized version
-                dst.Delete();
-                src.Copy(TEMP_FOLDER + '/' + srcName);
-
-                WScript.Echo(withoutRoot + ' - 0%');
-            }
-
-            results.push(result);
-        }
-
-        function processFile(filePath) {
-            "use strict";
-            //var folderName = fso.GetParentFolderName(filePath);
-            var fileName = fso.GetFileName(filePath);
-            var extension = fso.GetExtensionName(filePath).toLowerCase();
-            var copyPath = TEMP_FOLDER + '/' + fileName;
-
-            switch (extension) {
-                /*case 'png':
-                 case 'gif':
-                 if (('gif' == extension) && isGifAnimated(filePath)) {
-                 // Change src and dst with each other so dst could be placed in -o switch
-                 exec(GIF_OPTIMIZER_FILE, GIF_OPTIMIZER_PARAMS, copyPath, filePath);
-
-                 checkResult(filePath, copyPath);
-                 }
-                 else {
-                 fso.GetFile(filePath).Copy(copyPath);
-
-                 exec(PNG_OPTIMIZER_FILE, PNG_OPTIMIZER_PARAMS, copyPath);
-
-                 if ('gif' == extension) {
-                 fso.GetFile(copyPath).Delete();
-                 }
-
-                 checkResult(filePath, copyPath.replace('.gif', '.png'));
-                 }
-
-                 break;*/
-
-                case 'png':
-                    fso.GetFile(filePath).Copy(copyPath);
-                    exec(PNG_OPTIMIZER_FILE, PNG_OPTIMIZER_PARAMS, copyPath);
-                    checkResult(filePath, copyPath);
-
-                    fso.GetFile(copyPath).Copy(filePath);
-                    break;
-
-                case 'jpg':
-                case 'jpeg':
-                    exec(JPEG_OPTIMIZER_FILE, JPEG_OPTIMIZER_PARAMS, filePath, copyPath);
-                    checkResult(filePath, copyPath);
-
-                    fso.GetFile(copyPath).Copy(filePath);
-                    break;
+                processFolder(fileName);
             }
         }
+    }
+}
 
-        function processFolder(folderName) {
-            "use strict";
+function createFolder(path) {
+    "use strict";
 
-            var folder = fso.GetFolder(folderName);
-
-            if (0 === (folder.Files.count + folder.SubFolders.count)) {
-                return;
-            }
-
-            if (folder.SubFolders.count > 0) {
-                for (var subFolders = new Enumerator(folder.SubFolders); !subFolders.atEnd(); subFolders.moveNext()) { // @todo
-                    var subFolder = subFolders.item();
-                    processFolder(subFolder);
-                }
-            }
-
-            if (folder.Files.count > 0) {
-                for (var files = new Enumerator(folder.Files); !files.atEnd(); files.moveNext()) { // @todo
-                    var file = files.item();
-                    processFile(file);
-                }
-            }
+    if (!fso.FolderExists(path)) {
+        try {
+            fso.CreateFolder(path);
         }
-
-        function process(files) {
-            "use strict";
-            for (var fileIdx = 0; fileIdx < files.length; fileIdx++) {
-                var fileName = files(fileIdx);
-                if (fileName !== 'console') {
-
-                    if (0 === fso.FolderExists(fileName)) {
-                        processFile(fileName);
-                    }
-                    else {
-                        processFolder(fileName);
-                    }
-                }
-            }
+        catch (e) {
+            WScript.Echo('Cannot create folder for optimized files.');
         }
+    }
+}
 
-        function createFolder(path) {
-            "use strict";
-
-            if (!fso.FolderExists(path)) {
-                try {
-                    fso.CreateFolder(path);
-                }
-                catch (e) {
-                    WScript.Echo('Cannot create folder for optimized files.');
-                }
-            }
-        }
-
-        //function isGifAnimated(fileName) {
-        //    "use strict";
-        //    var cmd = [
-        //        BIN_PATH + '/' + GIF_OPTIMIZER_FILE,
-        //        '-I',
-        //        '"' + fileName + '"'
-        //    ].join(' ');
-        //
-        //    var proc = shell.Run(cmd, 0, true);
-        //
-        //    // ждём завершения
-        //    while (0 === proc.Status) {
-        //        WScript.Sleep(100);
-        //    }
-        //
-        //    return (-1 === proc.StdOut.ReadAll().indexOf('.gif 1 image'));
-        //}
+//function isGifAnimated(fileName) {
+//    "use strict";
+//    var cmd = [
+//        BIN_PATH + '/' + GIF_OPTIMIZER_FILE,
+//        '-I',
+//        '"' + fileName + '"'
+//    ].join(' ');
+//
+//    var proc = shell.Run(cmd, 0, true);
+//
+//    // ждём завершения
+//    while (0 === proc.Status) {
+//        WScript.Sleep(100);
+//    }
+//
+//    return (-1 === proc.StdOut.ReadAll().indexOf('.gif 1 image'));
+//}
 
 
-        function formatSize(size) {
-            "use strict";
-            var str = (size / 1024).toFixed(2);
+function formatSize(size) {
+    "use strict";
+    var str = (size / 1024).toFixed(2);
 
-            if ('.' === str.charAt(str.length - 2)) {
-                str += '0';
-            }
+    if ('.' === str.charAt(str.length - 2)) {
+        str += '0';
+    }
 
-            return str;
-        }
+    return str;
+}
 
-        function saveResults() {
-            "use strict";
-            if (!results.length) {
-                return true;
-            }
+function saveResults() {
+    "use strict";
+    if (!results.length) {
+        return true;
+    }
 
-            var totalBefore = 0;
-            var totalAfter = 0;
-            var totalBytes;
-            var totalPercents;
-            var r;
-            var index;
+    var totalBefore = 0;
+    var totalAfter = 0;
+    var totalBytes;
+    var totalPercents;
+    var r;
+    var index;
 
 
-            for (index = 0; index < results.length; index++) {
-                r = results[index];
+    for (index = 0; index < results.length; index++) {
+        r = results[index];
 
-                totalBefore += r.before;
-                totalAfter += r.after;
-            }
+        totalBefore += r.before;
+        totalAfter += r.after;
+    }
 
-            totalBytes = totalBefore - totalAfter;
-            totalPercents = (100 - (totalAfter / totalBefore) * 100).toFixed(2);
+    totalBytes = totalBefore - totalAfter;
+    totalPercents = (100 - (totalAfter / totalBefore) * 100).toFixed(2);
 
-            WScript.Echo('Total size of images before compression: ' + formatSize(totalBefore) + ' KB');
-            WScript.Echo('Total size of images after compression: ' + formatSize(totalAfter) + ' KB');
-            WScript.Echo('Saved: ' + formatSize(totalBytes) + ' KB (' + totalPercents + '%)');
+    WScript.Echo('Total size of images before compression: ' + formatSize(totalBefore) + ' KB');
+    WScript.Echo('Total size of images after compression: ' + formatSize(totalAfter) + ' KB');
+    WScript.Echo('Saved: ' + formatSize(totalBytes) + ' KB (' + totalPercents + '%)');
 
-            return true;
-        }
+    return true;
+}
 
-        ///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
-        if (0 === arg.length) {
-            WScript.Echo(
-                    projectName + ' ver ' + version + '\n\n' +
-                            'Automatic web graphics optimizer: PNG, JPEG и GIF\n\n' +
-                            'Drag and drop folder with images on file ' + fso.GetFileName(WScript.ScriptFullName)
-            );
-        }
-        else {
-
-            for (var argIdx = 0; argIdx < arg.length; argIdx++) {
-                argumentStr = argumentStr + ' ' + arg(argIdx);
-            }
-
-            if ('console' !== arg(0)) {
-                shell.Run('%ComSpec% /f:on /t:1b /k title=' + projectName + ' & cscript /nologo "' + WScript.ScriptFullName + '" console ' + argumentStr, 1, false);
-                WScript.Quit();
-            }
-            else {
-                createFolder(TEMP_FOLDER);
-                var rootFolder = fso.GetParentFolderName(arg(1)) + '\\';
-                process(arg);
-                saveResults();
-                fso.deleteFolder(TEMP_FOLDER, true);
-            }
-        }
-
-        ]]></script>
+// call without arguments
+if (0 === arg.length) {
+    WScript.Echo(
+            projectName + ' ver ' + version + '\n\n' +
+                    'Automatic web graphics optimizer: PNG, JPEG и GIF\n\n' +
+                    'Drag and drop folder with images on file ' + fso.GetFileName(WScript.ScriptFullName)
+    );
+}
+else {
+    for (var argIdx = 0; argIdx < arg.length; argIdx++) {
+        argumentStr = argumentStr + ' ' + arg(argIdx);
+    }
+    if ('console' !== arg(0)) {
+        shell.Run('%ComSpec% /f:on /t:1b /k title=' + projectName + ' & cscript /nologo "' + WScript.ScriptFullName + '" console ' + argumentStr, 1, false);
+        WScript.Quit();
+    }
+    else {
+        createFolder(TEMP_FOLDER);
+        rootFolder = fso.GetParentFolderName(arg(1)) + '\\';
+        process(arg);
+        saveResults();
+        fso.deleteFolder(TEMP_FOLDER, true);
+    }
+}
+]]></script>
 </job>
