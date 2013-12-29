@@ -4,5 +4,5 @@ http://www.lcdf.org/gifsicle/
 jpegtran 8d  15-Jan-2012
 http://jpegclub.org/jpegtran/
 
-optipng 0.6.5
+optipng 0.7.4
 http://optipng.sourceforge.net/
