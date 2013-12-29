@@ -1,14 +1,14 @@
 <?XML version="1.0"?>
 <!--
-PictureBeaver 1.0.3
-Automatic web graphics optimizer: PNG, JPEG и GIF
+PictureBeaverTree 0.1
+Automatic web graphics optimizer: PNG and JPEG
 
 (C) 2009 Artem Sapegin (sapegin.ru)
 -->
 <job>
 	<runtime>
-		<description>PictureBeaver 1.0
-Automatic web graphics optimizer: PNG, JPEG и GIF</description>
+		<description>PictureBeaverTree 0.1
+Automatic web graphics optimizer: PNG and JPEG</description>
 	</runtime>
 <script language="JScript"><![CDATA[
 
@@ -324,8 +324,8 @@ if (0 == arguments.length) {
 	var isGui = ('wscript.exe' == fso.GetFileName(WScript.FullName).toLowerCase());
 
 	WScript.Echo(
-		'PictureBeaver\n' +
-		'Automatic web graphics optimizer: PNG, JPEG и GIF\n\n' +
+		'PictureBeaverTree\n' +
+		'Automatic web graphics optimizer: PNG and JPEG\n\n' +
 		( isGui
 			? ( 'Drag and drop files over ' + fso.GetFileName(WScript.ScriptFullName) + '.\n\n' )
 			: ( 'Usage:\n' + '    ' + fso.GetFileName(WScript.ScriptFullName) + ' <file or folder>\n\n' )
