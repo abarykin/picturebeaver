@@ -6,7 +6,7 @@ https://github.com/abarykin/picturebeaver
 -->
 <job>
     <runtime>
-        <description>PictureBeaverTree 0.2
+        <description>PictureBeaverTree 0.3
             Automatic web graphics optimizer: PNG and JPEG
         </description>
     </runtime>
@@ -16,14 +16,14 @@ https://github.com/abarykin/picturebeaver
 // -nc: do not apply color type reduction
 // -nb: do not apply bit depth reduction
 var projectName             = 'PictureBeaverTree';
-var version                 = '0.2';
+var version                 = '0.3';
 var fso                     = WScript.CreateObject("Scripting.FileSystemObject");
 var arguments               = WScript.Arguments;
 var PNG_OPTIMIZER_FILE		= 'optipng.exe';
 //var PNG_OPTIMIZER_PARAMS	= '-o3 -i0 -nc -nb -q';
-var PNG_OPTIMIZER_PARAMS	= '-o3  -q';
-var GIF_OPTIMIZER_FILE		= 'gifsicle.exe';
-var GIF_OPTIMIZER_PARAMS	= '-O2 -o';
+var PNG_OPTIMIZER_PARAMS	= '-o3 -i0 -q';
+//var GIF_OPTIMIZER_FILE    = 'gifsicle.exe';
+//var GIF_OPTIMIZER_PARAMS  = '-O2 -o';
 var JPEG_OPTIMIZER_FILE		= 'jpegtran.exe';
 var JPEG_OPTIMIZER_PARAMS	= '-copy none -optimize';
 var TEMP_FOLDER             = fso.GetSpecialFolder(2) + '/' + projectName;
@@ -179,7 +179,7 @@ function checkResult(srcPath, dstPath) {
 
 	if ( dst.size <= src.size ) {
 		result.bytes = src.size - dst.size;
-		result.percents = Math.round(100 - (dst.size/src.size)*100);
+		result.percents = (100 - (dst.size/src.size)*100).toFixed(2);
 
         WScript.Echo(src + ' - ' + result.percents + '%');
 	}
@@ -267,16 +267,15 @@ function saveResults(){
     }
 
     totalBytes = totalBefore - totalAfter;
-    totalPercents = Math.round(100 - (totalAfter/totalBefore)*100);
+    totalPercents = (100 - (totalAfter/totalBefore)*100).toFixed(2);
 
-    WScript.Echo('Total size of images before compression: ' + formatSize(totalBefore) + 'KB');
-    WScript.Echo('Total size of images after compression: ' + formatSize(totalAfter) + 'KB');
-    WScript.Echo('Saved: ' + formatSize(totalBytes) + 'KB');
-    WScript.Echo('Saved: ' + totalPercents + '%');
+    WScript.Echo('Total size of images before compression: ' + formatSize(totalBefore) + ' KB');
+    WScript.Echo('Total size of images after compression: ' + formatSize(totalAfter) + ' KB');
+    WScript.Echo('Saved: ' + formatSize(totalBytes) + ' KB ('+totalPercents+'%)');
 }
 
 function formatSize(size) {
-    var str = (Math.round((size*100)/1024)/100).toString()
+    var str = (size/1024).toFixed(2);
 
     if ('.' == str.charAt(str.length - 2)) {
         str += '0';
