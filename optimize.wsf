@@ -1,12 +1,12 @@
 <?XML version="1.0"?>
 <!--
-PictureBeaverTree 0.5
+PictureBeaverTree 0.6
 Automatic web graphics optimizer: PNG and JPEG
 https://github.com/abarykin/picturebeaver
 -->
 <job>
     <runtime>
-        <description>PictureBeaverTree ver 0.5
+        <description>PictureBeaverTree ver 0.6
             Automatic web graphics optimizer: PNG and JPEG
         </description>
     </runtime>
@@ -16,7 +16,7 @@ https://github.com/abarykin/picturebeaver
 // -nc: do not apply color type reduction
 // -nb: do not apply bit depth reduction
 var projectName             = 'PictureBeaverTree';
-var version                 = '0.5';
+var version                 = '0.6';
 
 var PNG_OPTIMIZER_FILE      = 'optipng.exe';
 var PNG_OPTIMIZER_PARAMS    = '-o3 -i0 -q';
@@ -35,6 +35,8 @@ var BIN_PATH                = ROOT_PATH + '/bin';
 var rootFolder              = '';
 var argumentStr             = '';
 var results                 = [];
+var countImage              = 0;
+var countCompressedImage    = 0;
 
 ///////////////////////////////////////////////////////////////
 
@@ -88,12 +90,20 @@ function checkResult(srcPath, dstPath) {
         result.bytes = src.size - dst.size;
         result.percents = (100 - (dst.size / src.size) * 100).toFixed(2);
 
+        countImage++;
+        if (dst.size < src.size) {
+            countCompressedImage++;
+        }
+
         WScript.Echo(withoutRoot + ' - ' + result.percents + '%');
     }
     else {
         result.after = src.size;
         result.bytes = 0;
         result.percents = 0;
+
+        countImage++;
+
         // Replace old file with optimized version
         dst.Delete();
         src.Copy(TEMP_FOLDER + '/' + srcName);
@@ -180,12 +190,11 @@ function process(files) {
     for (var fileIdx = 0; fileIdx < files.length; fileIdx++) {
         var fileName = files(fileIdx);
         if (fileName !== 'console') {
-
-            if (0 === fso.FolderExists(fileName)) {
-                processFile(fileName);
-            }
-            else {
+            if (true === fso.FolderExists(fileName)) {
                 processFolder(fileName);
+            }
+            if (true === fso.FileExists(fileName)) {
+                processFile(fileName);
             }
         }
     }
@@ -258,6 +267,9 @@ function saveResults() {
     totalBytes = totalBefore - totalAfter;
     totalPercents = (100 - (totalAfter / totalBefore) * 100).toFixed(2);
 
+    WScript.Echo('_______________________________________');
+    WScript.Echo('Total count of images: ' + countImage);
+    WScript.Echo('Total count of compressed images: ' + countCompressedImage);
     WScript.Echo('Total size of images before compression: ' + formatSize(totalBefore) + ' KB');
     WScript.Echo('Total size of images after compression: ' + formatSize(totalAfter) + ' KB');
     WScript.Echo('Saved: ' + formatSize(totalBytes) + ' KB (' + totalPercents + '%)');
