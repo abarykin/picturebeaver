@@ -1,12 +1,12 @@
 <?XML version="1.0"?>
 <!--
-PictureBeaverTree 0.6
+PictureBeaverTree 0.61
 Automatic web graphics optimizer: PNG and JPEG
 https://github.com/abarykin/picturebeaver
 -->
 <job>
     <runtime>
-        <description>PictureBeaverTree ver 0.6
+        <description>PictureBeaverTree ver 0.61
             Automatic web graphics optimizer: PNG and JPEG
         </description>
     </runtime>
@@ -16,7 +16,7 @@ https://github.com/abarykin/picturebeaver
 // -nc: do not apply color type reduction
 // -nb: do not apply bit depth reduction
 var projectName             = 'PictureBeaverTree';
-var version                 = '0.6';
+var version                 = '0.61';
 
 var PNG_OPTIMIZER_FILE      = 'optipng.exe';
 var PNG_OPTIMIZER_PARAMS    = '-o3 -i0 -q';
@@ -31,7 +31,7 @@ var shell                   = WScript.CreateObject("WScript.Shell");
 
 var TEMP_FOLDER             = fso.GetSpecialFolder(2) + '/' + projectName;
 var ROOT_PATH               = fso.GetParentFolderName(WScript.ScriptFullName);
-var BIN_PATH                = ROOT_PATH + '/bin';
+var BIN_PATH                = ROOT_PATH + '/bin/';
 var rootFolder              = '';
 var argumentStr             = '';
 var results                 = [];
@@ -43,7 +43,7 @@ var countCompressedImage    = 0;
 function exec(binary, params, srcName, dstName) {
     "use strict";
     var cmd = [
-        BIN_PATH + '/' + binary,
+        BIN_PATH + binary,
         params,
         '"' + srcName + '"'
     ];
@@ -54,12 +54,13 @@ function exec(binary, params, srcName, dstName) {
 
     cmd = cmd.join(' ');
 
-    var proc = shell.Run(cmd, 0, true);
+    shell.Run(cmd, 0, true);
+//    var proc = shell.Run(cmd, 0, true);
 
     // ждём завершения
-    while (0 === proc.Status) {
-        WScript.Sleep(100);
-    }
+//    while (0 === proc.Status) {
+//       WScript.Sleep(100);
+//    }
 }
 
 function checkResult(srcPath, dstPath) {
@@ -114,12 +115,10 @@ function checkResult(srcPath, dstPath) {
     results.push(result);
 }
 
-function processFile(filePath) {
+function processFile(srcPath) {
     "use strict";
-    //var folderName = fso.GetParentFolderName(filePath);
-    var fileName = fso.GetFileName(filePath);
-    var extension = fso.GetExtensionName(filePath).toLowerCase();
-    var copyPath = TEMP_FOLDER + '/' + fileName;
+    var extension = fso.GetExtensionName(srcPath).toLowerCase();
+    var dstPath = TEMP_FOLDER + '/' + fso.GetFileName(srcPath);
 
     switch (extension) {
         /*case 'png':
@@ -145,19 +144,19 @@ function processFile(filePath) {
          break;*/
 
         case 'png':
-            fso.GetFile(filePath).Copy(copyPath);
-            exec(PNG_OPTIMIZER_FILE, PNG_OPTIMIZER_PARAMS, copyPath);
-            checkResult(filePath, copyPath);
+            fso.GetFile(srcPath).Copy(dstPath);
+            exec(PNG_OPTIMIZER_FILE, PNG_OPTIMIZER_PARAMS, dstPath);
+            checkResult(srcPath, copyPath);
 
-            fso.GetFile(copyPath).Copy(filePath);
+            fso.GetFile(dstPath).Copy(srcPath);
             break;
 
         case 'jpg':
         case 'jpeg':
-            exec(JPEG_OPTIMIZER_FILE, JPEG_OPTIMIZER_PARAMS, filePath, copyPath);
-            checkResult(filePath, copyPath);
+            exec(JPEG_OPTIMIZER_FILE, JPEG_OPTIMIZER_PARAMS, srcPath, dstPath);
+            checkResult(srcPath, dstPath);
 
-            fso.GetFile(copyPath).Copy(filePath);
+            fso.GetFile(dstPath).Copy(srcPath);
             break;
     }
 }
@@ -202,7 +201,6 @@ function process(files) {
 
 function createFolder(path) {
     "use strict";
-
     if (!fso.FolderExists(path)) {
         try {
             fso.CreateFolder(path);
@@ -231,16 +229,9 @@ function createFolder(path) {
 //    return (-1 === proc.StdOut.ReadAll().indexOf('.gif 1 image'));
 //}
 
-
 function formatSize(size) {
     "use strict";
-    var str = (size / 1024).toFixed(2);
-
-    if ('.' === str.charAt(str.length - 2)) {
-        str += '0';
-    }
-
-    return str;
+    return (size / 1024).toFixed(2);
 }
 
 function saveResults() {
@@ -253,15 +244,10 @@ function saveResults() {
     var totalAfter = 0;
     var totalBytes;
     var totalPercents;
-    var r;
-    var index;
 
-
-    for (index = 0; index < results.length; index++) {
-        r = results[index];
-
-        totalBefore += r.before;
-        totalAfter += r.after;
+    for (var i = 0; i < results.length; i++) {
+        totalBefore += results[i].before;
+        totalAfter += results[i].after;
     }
 
     totalBytes = totalBefore - totalAfter;

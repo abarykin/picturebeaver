@@ -23,7 +23,7 @@ Drag and drop files/folders to `optimize.wsf` (or it’s shortcut).
 (The MIT License)
 
 Copyright © 2009-2012 Artem Sapegin, artem@sapegin.ru, http://sapegin.me
-Copyright © 2013-2014 Alexey barykin, alexey@barykin.com, http://barykin.com
+Copyright © 2013-2014 Alexey Barykin, alexey@barykin.com, http://barykin.com
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
