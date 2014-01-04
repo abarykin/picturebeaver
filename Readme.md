@@ -1,4 +1,4 @@
-# PictureBeaverTree
+# PictureBeaverTree ver 0.61
 
 Automatic web graphics optimizer for Windows: PNG and JPEG.
 
