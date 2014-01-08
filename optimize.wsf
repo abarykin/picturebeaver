@@ -1,13 +1,10 @@
 <?XML version="1.0"?>
-<!--
-PictureBeaverTree 0.61
-Automatic web graphics optimizer: PNG and JPEG
-https://github.com/abarykin/picturebeaver
--->
 <job>
     <runtime>
-        <description>PictureBeaverTree ver 0.61
+        <description>
+            PictureBeaverTree ver 0.62
             Automatic web graphics optimizer: PNG and JPEG
+            https://github.com/abarykin/picturebeaver
         </description>
     </runtime>
     <script language="JScript">
@@ -16,7 +13,7 @@ https://github.com/abarykin/picturebeaver
 // -nc: do not apply color type reduction
 // -nb: do not apply bit depth reduction
 var projectName             = 'PictureBeaverTree';
-var version                 = '0.61';
+var version                 = '0.62';
 
 var PNG_OPTIMIZER_FILE      = 'optipng.exe';
 var PNG_OPTIMIZER_PARAMS    = '-o3 -i0 -q';
@@ -67,13 +64,12 @@ function checkResult(srcPath, dstPath) {
     "use strict";
     var srcName = fso.GetFileName(srcPath);
     var src = fso.GetFile(srcPath);
-    var dst;
 
     var withoutRoot = new String(srcPath);
     withoutRoot = withoutRoot.replace(rootFolder, '');
 
     try {
-        dst = fso.GetFile(dstPath);
+        var dst = fso.GetFile(dstPath);
     }
     catch (e) {
         src.Copy(TEMP_FOLDER + '/' + srcName);
@@ -146,7 +142,7 @@ function processFile(srcPath) {
         case 'png':
             fso.GetFile(srcPath).Copy(dstPath);
             exec(PNG_OPTIMIZER_FILE, PNG_OPTIMIZER_PARAMS, dstPath);
-            checkResult(srcPath, copyPath);
+            checkResult(srcPath, dstPath);
 
             fso.GetFile(dstPath).Copy(srcPath);
             break;
