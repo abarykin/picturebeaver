@@ -1,8 +1,8 @@
 # PictureBeaverTree ver 0.61
 
-Automatic web graphics optimizer for Windows: PNG and JPEG.
+Automatic web graphics optimizer for Windows: PNG, JPEG and GIF.
 
-Removes unnecessary information from graphic files. Less size without data loss. Uses free command line tools: `optipng` and `jpegtran`.
+Removes unnecessary information from graphic files. Less size without data loss. Uses free command line tools: `optipng`, `jpegtran`  and `gifsicle`.
 
 
 ## Using from Windows Explorer
