@@ -2,23 +2,20 @@
 <job>
     <runtime>
         <description>
-            PictureBeaverTree ver 0.62
-            Automatic web graphics optimizer: PNG and JPEG
+            PictureBeaverTree ver 0.7
+            Automatic web graphics optimizer:  PNG, JPEG and GIF
             https://github.com/abarykin/picturebeaver
         </description>
     </runtime>
     <script language="JScript">
 <![CDATA[
-// -i0: non-interlaced
-// -nc: do not apply color type reduction
-// -nb: do not apply bit depth reduction
 var projectName             = 'PictureBeaverTree';
-var version                 = '0.62';
+var version                 = '0.7';
 
 var PNG_OPTIMIZER_FILE      = 'optipng.exe';
 var PNG_OPTIMIZER_PARAMS    = '-o3 -i0 -q';
-//var GIF_OPTIMIZER_FILE    = 'gifsicle.exe';
-//var GIF_OPTIMIZER_PARAMS  = '-O2 -o';
+var GIF_OPTIMIZER_FILE      = 'gifsicle.exe';
+var GIF_OPTIMIZER_PARAMS    = '-O3';
 var JPEG_OPTIMIZER_FILE     = 'jpegtran.exe';
 var JPEG_OPTIMIZER_PARAMS   = '-copy none -optimize';
 
@@ -45,6 +42,10 @@ function exec(binary, params, srcName, dstName) {
         '"' + srcName + '"'
     ];
 
+    if (binary === GIF_OPTIMIZER_FILE) {
+        cmd.push(' -o ');
+    }
+
     if (dstName !== undefined) {
         cmd.push('"' + dstName + '"');
     }
@@ -52,12 +53,6 @@ function exec(binary, params, srcName, dstName) {
     cmd = cmd.join(' ');
 
     shell.Run(cmd, 0, true);
-//    var proc = shell.Run(cmd, 0, true);
-
-    // ждём завершения
-//    while (0 === proc.Status) {
-//       WScript.Sleep(100);
-//    }
 }
 
 function checkResult(srcPath, dstPath) {
@@ -117,27 +112,12 @@ function processFile(srcPath) {
     var dstPath = TEMP_FOLDER + '/' + fso.GetFileName(srcPath);
 
     switch (extension) {
-        /*case 'png':
-         case 'gif':
-         if (('gif' == extension) && isGifAnimated(filePath)) {
-         // Change src and dst with each other so dst could be placed in -o switch
-         exec(GIF_OPTIMIZER_FILE, GIF_OPTIMIZER_PARAMS, copyPath, filePath);
+        case 'gif':
+            exec(GIF_OPTIMIZER_FILE, GIF_OPTIMIZER_PARAMS, srcPath, dstPath);
+            checkResult(srcPath, dstPath);
 
-         checkResult(filePath, copyPath);
-         }
-         else {
-         fso.GetFile(filePath).Copy(copyPath);
-
-         exec(PNG_OPTIMIZER_FILE, PNG_OPTIMIZER_PARAMS, copyPath);
-
-         if ('gif' == extension) {
-         fso.GetFile(copyPath).Delete();
-         }
-
-         checkResult(filePath, copyPath.replace('.gif', '.png'));
-         }
-
-         break;*/
+            fso.GetFile(dstPath).Copy(srcPath);
+            break;
 
         case 'png':
             fso.GetFile(srcPath).Copy(dstPath);
@@ -207,24 +187,6 @@ function createFolder(path) {
     }
 }
 
-//function isGifAnimated(fileName) {
-//    "use strict";
-//    var cmd = [
-//        BIN_PATH + '/' + GIF_OPTIMIZER_FILE,
-//        '-I',
-//        '"' + fileName + '"'
-//    ].join(' ');
-//
-//    var proc = shell.Run(cmd, 0, true);
-//
-//    // ждём завершения
-//    while (0 === proc.Status) {
-//        WScript.Sleep(100);
-//    }
-//
-//    return (-1 === proc.StdOut.ReadAll().indexOf('.gif 1 image'));
-//}
-
 function formatSize(size) {
     "use strict";
     return (size / 1024).toFixed(2);
@@ -265,7 +227,7 @@ function saveResults() {
 if (0 === arg.length) {
     WScript.Echo(
             projectName + ' ver ' + version + '\n\n' +
-                    'Automatic web graphics optimizer: PNG, JPEG и GIF\n\n' +
+                    'Automatic web graphics optimizer: PNG, JPEG and GIF\n\n' +
                     'Drag and drop folder with images on file ' + fso.GetFileName(WScript.ScriptFullName)
     );
 }
