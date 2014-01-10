@@ -2,7 +2,7 @@
 <job>
     <runtime>
         <description>
-            PictureBeaverTree ver 0.7
+            PictureBeaverTree ver 0.71
             Automatic web graphics optimizer:  PNG, JPEG and GIF
             https://github.com/abarykin/picturebeaver
         </description>
@@ -10,7 +10,7 @@
     <script language="JScript">
 <![CDATA[
 var projectName             = 'PictureBeaverTree';
-var version                 = '0.7';
+var version                 = '0.71';
 
 var PNG_OPTIMIZER_FILE      = 'optipng.exe';
 var PNG_OPTIMIZER_PARAMS    = '-o3 -i0 -q';
@@ -233,7 +233,7 @@ if (0 === arg.length) {
 }
 else {
     for (var argIdx = 0; argIdx < arg.length; argIdx++) {
-        argumentStr = argumentStr + ' ' + arg(argIdx);
+        argumentStr = argumentStr + ' "' + arg(argIdx) + '"';
     }
     if ('console' !== arg(0)) {
         shell.Run('%ComSpec% /f:on /t:1b /k title=' + projectName + ' & cscript /nologo "' + WScript.ScriptFullName + '" console ' + argumentStr, 1, false);
